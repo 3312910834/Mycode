@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CORS测试页面</title>
+</head>
+<body>
+    <h1>CORS跨域测试</h1>
+    <p>测试您的Java后端是否允许跨域请求</p>
+    
+    <div style="margin: 20px 0;">
+        <button onclick="testCors()">测试CORS连接</button>
+        <button onclick="testCorsWithOrigin()">测试带Origin的请求</button>
+        <button onclick="testOptions()">测试OPTIONS预检请求</button>
+    </div>
+    
+    <div id="result" style="padding:15px; border:1px solid #ccc; background:#f9f9f9; min-height:100px;">
+        测试结果将显示在这里...
+    </div>
+    
+    <script>
+        const BASE_URL = 'http://localhost:8080/campus-lost-found';
+        
+        function showResult(message, isSuccess = true) {
+            const resultDiv = document.getElementById('result');
+            const color = isSuccess ? 'green' : 'red';
+            const prefix = isSuccess ? '✅' : '❌';
+            resultDiv.innerHTML = `<h3 style="color:${color}">${prefix} ${message}</h3>`;
+        }
+        
+        function testCors() {
+            showResult('测试中...');
+            
+            fetch(BASE_URL + '/announcementapi/visible')
+                .then(response => {
+                    console.log('响应状态:', response.status);
+                    console.log('响应头:', [...response.headers.entries()]);
+                    
+                    // 检查CORS头
+                    const corsHeaders = {
+                        'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
+                        'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
+                        'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers')
+                    };
+                    
+                    console.log('CORS头:', corsHeaders);
+                    
+                    return response.json();
+                })
+                .then(data => {
+                    showResult(`CORS测试成功！允许的源: ${data.headers?.['Access-Control-Allow-Origin'] || '已设置'}`);
+                    
+                    // 显示详细结果
+                    const resultDiv = document.getElementById('result');
+                    resultDiv.innerHTML += `
+                        <hr>
+                        <h4>API响应:</h4>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                        <h4>CORS头信息:</h4>
+                        <ul>
+                            <li>Access-Control-Allow-Origin: ${data.headers?.['Access-Control-Allow-Origin'] || '未检测到'}</li>
+                            <li>请求状态: ${data.code || '成功'}</li>
+                        </ul>
+                    `;
+                })
+                .catch(error => {
+                    showResult(`CORS测试失败: ${error.message}`, false);
+                    console.error('错误详情:', error);
+                });
+        }
+        
+        function testCorsWithOrigin() {
+            showResult('发送带Origin的请求...');
+            
+            fetch(BASE_URL + '/userapi/test', {
+                headers: {
+                    'Origin': 'http://localhost:3000'
+                }
+            })
+            .then(response => {
+                const allowOrigin = response.headers.get('Access-Control-Allow-Origin');
+                showResult(`Origin测试完成。Allow-Origin: ${allowOrigin}`);
+                return response.json();
+            })
+            .catch(error => {
+                showResult(`Origin测试失败: ${error.message}`, false);
+            });
+        }
+        
+        function testOptions() {
+            showResult('发送OPTIONS预检请求...');
+            
+            fetch(BASE_URL + '/announcementapi/visible', {
+                method: 'OPTIONS',
+                headers: {
+                    'Origin': 'http://localhost:3000',
+                    'Access-Control-Request-Method': 'GET',
+                    'Access-Control-Request-Headers': 'Content-Type'
+                }
+            })
+            .then(response => {
+                console.log('OPTIONS响应:', response);
+                
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = `
+                    <h3 style="color:green">✅ OPTIONS请求成功</h3>
+                    <p>状态码: ${response.status} ${response.statusText}</p>
+                    <h4>CORS响应头:</h4>
+                    <ul>
+                        <li>Access-Control-Allow-Origin: ${response.headers.get('Access-Control-Allow-Origin')}</li>
+                        <li>Access-Control-Allow-Methods: ${response.headers.get('Access-Control-Allow-Methods')}</li>
+                        <li>Access-Control-Allow-Headers: ${response.headers.get('Access-Control-Allow-Headers')}</li>
+                        <li>Access-Control-Max-Age: ${response.headers.get('Access-Control-Max-Age')}</li>
+                    </ul>
+                    <p><strong>说明：</strong>OPTIONS请求返回200状态码，说明CORS预检通过。</p>
+                `;
+            })
+            .catch(error => {
+                showResult(`OPTIONS请求失败: ${error.message}`, false);
+            });
+        }
+    </script>
+    
+    <style>
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow: auto;
+            max-height: 300px;
+        }
+    </style>
+</body>
+</html>

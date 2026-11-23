@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>校园失物招领系统</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..0" />
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .header { background: #007bff; color: white; padding: 20px; border-radius: 5px; }
+        .module { border: 1px solid #ddd; padding: 20px; margin: 20px 0; border-radius: 5px; }
+        button { padding: 10px; margin: 5px; background: #28a745; color: white; border: none; cursor: pointer; }
+        button:hover { opacity: 0.9; }
+        .result { background: #f8f9fa; padding: 15px; margin: 10px 0; border-radius: 5px; white-space: pre-wrap; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>校园失物招领系统 - 测试平台</h1>
+        <p>后端API测试页面</p>
+    </div>
+    
+    <!-- 用户模块 -->
+    <div class="module">
+        <h2>👤 用户模块</h2>
+        <button onclick="testLogin()">测试登录 (admin/admin123)</button>
+        <button onclick="getUserInfo()">获取用户信息 (ID=8)</button>
+        <div class="result" id="userResult"></div>
+    </div>
+    
+    <!-- 失物模块 -->
+    <div class="module">
+        <h2>🔍 失物模块</h2>
+        <button onclick="getLostList()">获取失物列表</button>
+        <button onclick="getMyLost()">获取我的失物 (用户ID=8)</button>
+        <button onclick="searchLost()">搜索"钱包"</button>
+        <div class="result" id="lostResult"></div>
+        <div id="lostTable"></div>
+    </div>
+    <div class="module">
+    <h2>🏷️ 招领模块</h2>
+    <button onclick="getFoundList()">获取招领列表</button>
+    <button onclick="getMyFound()">获取我的招领 (用户ID=8)</button>
+    <button onclick="searchFound('校园卡')">搜索"校园卡"</button>
+    <div class="result" id="foundResult"></div>
+    <div id="foundTable"></div>
+</div>
+
+<script>
+// 招领模块函数
+async function getFoundList() {
+    try {
+        const response = await fetch(baseUrl + '/foundapi/list');
+        const result = await response.json();
+        displayResult('foundResult', result);
+        displayFoundTable(result.data?.items);
+    } catch (error) {
+        document.getElementById('foundResult').innerHTML = '错误: ' + error;
+    }
+}
+
+async function getMyFound() {
+    try {
+        const response = await fetch(baseUrl + '/foundapi/my?userId=8');
+        const result = await response.json();
+        displayResult('foundResult', result);
+    } catch (error) {
+        document.getElementById('foundResult').innerHTML = '错误: ' + error;
+    }
+}
+
+async function searchFound(keyword) {
+    try {
+        const response = await fetch(baseUrl + '/foundapi/search?keyword=' + encodeURIComponent(keyword));
+        const result = await response.json();
+        displayResult('foundResult', result);
+    } catch (error) {
+        document.getElementById('foundResult').innerHTML = '错误: ' + error;
+    }
+}
+
+function displayFoundTable(items) {
+    if (!items || items.length === 0) {
+        document.getElementById('foundTable').innerHTML = '<p>暂无数据</p>';
+        return;
+    }
+    
+    let html = '<h3>招领列表</h3><table>';
+    html += '<tr><th>ID</th><th>物品名称</th><th>拾获地点</th><th>保管地点</th><th>状态</th><th>发布者</th></tr>';
+    
+    items.forEach(item => {
+        html += `<tr>
+            <td>${item.id || ''}</td>
+            <td>${item.title || ''}</td>
+            <td>${item.foundLocation || ''}</td>
+            <td>${item.storageLocation || ''}</td>
+            <td>${item.status || ''}</td>
+            <td>${item.username || '匿名'}</td>
+        </tr>`;
+    });
+    
+    html += '</table>';
+    document.getElementById('foundTable').innerHTML = html;
+}
+</script>
+    <!-- 系统状态 -->
+    <div class="module">
+        <h2>📊 系统状态</h2>
+        <button onclick="checkAll()">检查所有API</button>
+        <div class="result" id="statusResult"></div>
+    </div>
+    
+    <script>
+        const baseUrl = '/campus-lost-found';
+        
+        // 用户模块
+        async function testLogin() {
+            try {
+                const response = await fetch(baseUrl + '/userapi/login?username=admin&password=admin123');
+                const result = await response.json();
+                displayResult('userResult', result);
+            } catch (error) {
+                document.getElementById('userResult').innerHTML = '错误: ' + error;
+            }
+        }
+        
+        async function getUserInfo() {
+            try {
+                const response = await fetch(baseUrl + '/userapi/info?id=8');
+                const result = await response.json();
+                displayResult('userResult', result);
+            } catch (error) {
+                document.getElementById('userResult').innerHTML = '错误: ' + error;
+            }
+        }
+        
+        // 失物模块
+        async function getLostList() {
+            try {
+                const response = await fetch(baseUrl + '/lostapi/list');
+                const result = await response.json();
+                displayResult('lostResult', result);
+                displayLostTable(result.data?.items);
+            } catch (error) {
+                document.getElementById('lostResult').innerHTML = '错误: ' + error;
+            }
+        }
+        
+        async function getMyLost() {
+            try {
+                const response = await fetch(baseUrl + '/lostapi/my?userId=8');
+                const result = await response.json();
+                displayResult('lostResult', result);
+            } catch (error) {
+                document.getElementById('lostResult').innerHTML = '错误: ' + error;
+            }
+        }
+        
+        async function searchLost() {
+            try {
+                const response = await fetch(baseUrl + '/lostapi/search?keyword=钱包');
+                const result = await response.json();
+                displayResult('lostResult', result);
+            } catch (error) {
+                document.getElementById('lostResult').innerHTML = '错误: ' + error;
+            }
+        }
+        
+        // 系统检查
+        async function checkAll() {
+            const apis = [
+                { name: '用户API', url: baseUrl + '/userapi/test' },
+                { name: '失物列表', url: baseUrl + '/lostapi/list' },
+                { name: '数据库测试', url: baseUrl + '/test/db' }
+            ];
+            
+            let results = [];
+            for (const api of apis) {
+                try {
+                    const response = await fetch(api.url);
+                    const result = await response.json();
+                    results.push(`✅ ${api.name}: 正常`);
+                } catch (error) {
+                    results.push(`❌ ${api.name}: 失败 - ${error.message}`);
+                }
+            }
+            
+            document.getElementById('statusResult').innerHTML = results.join('\n');
+        }
+        
+        // 工具函数
+        function displayResult(elementId, data) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = JSON.stringify(data, null, 2);
+        }
+        
+        function displayLostTable(items) {
+            if (!items || items.length === 0) {
+                document.getElementById('lostTable').innerHTML = '<p>暂无数据</p>';
+                return;
+            }
+            
+            let html = '<h3>失物列表</h3><table>';
+            html += '<tr><th>ID</th><th>物品名称</th><th>丢失地点</th><th>状态</th><th>发布者</th></tr>';
+            
+            items.forEach(item => {
+                html += `<tr>
+                    <td>${item.id || ''}</td>
+                    <td>${item.title || ''}</td>
+                    <td>${item.lostLocation || ''}</td>
+                    <td>${item.status || ''}</td>
+                    <td>${item.username || '匿名'}</td>
+                </tr>`;
+            });
+            
+            html += '</table>';
+            document.getElementById('lostTable').innerHTML = html;
+        }
+        
+        // 页面加载时自动测试
+        window.onload = function() {
+            checkAll();
+        };
+    </script>
+</body>
+</html>

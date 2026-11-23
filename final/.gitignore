@@ -1,0 +1,8 @@
+node_modules/
+target/
+build/
+*.class
+.DS_Store
+Thumbs.db
+.idea/
+*.iml

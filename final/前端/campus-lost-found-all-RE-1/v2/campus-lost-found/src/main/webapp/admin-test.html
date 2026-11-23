@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>管理员入口测试</title>
+</head>
+<body>
+    <h1>管理员入口测试页</h1>
+    
+    <!-- 登录表单 -->
+    <div id="login-box">
+        <h3>请登录</h3>
+        <input type="text" id="username" placeholder="用户名 (admin)" value="admin"><br><br>
+        <input type="password" id="password" placeholder="密码" value="admin123"><br><br>
+        <button onclick="doLogin()">登录</button>
+        <p id="msg"></p>
+    </div>
+
+    <!-- 登录成功后显示的内容 -->
+    <div id="admin-panel" style="display:none; border: 2px solid green; padding: 20px;">
+        <h2 style="color: green;">🎉 欢迎管理员！</h2>
+        <p>当前用户：<span id="user-name"></span></p>
+        <p>您的角色：<span id="user-role" style="font-weight:bold; color:red;"></span></p>
+        <hr>
+        <p>✅ 权限验证通过！您可以访问管理员功能。</p>
+        <button onclick="logout()">退出登录</button>
+    </div>
+
+    <script>
+        // 模拟登录请求
+        async function doLogin() {
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            const msg = document.getElementById('msg');
+
+            // 替换为你的实际项目路径
+            const url = `http://localhost:8080/campus-lost-found/userapi/login?username=${user}&password=${pass}`;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'GET', // 你的接口是 GET
+                    credentials: 'include' // 重要：允许发送/接收 Cookie (SessionID)
+                });
+                
+                const result = await response.json();
+                console.log("登录返回:", result);
+
+                if (result.code === 200 || result.message === "登录成功") {
+                    const data = result.data;
+                    
+                    // 👇 核心逻辑：判断角色
+                    if (data.role === 'admin') {
+                        msg.style.color = 'green';
+                        msg.innerText = "登录成功，检测到管理员身份！";
+                        
+                        // 隐藏登录框，显示管理员面板
+                        document.getElementById('login-box').style.display = 'none';
+                        document.getElementById('admin-panel').style.display = 'block';
+                        
+                        document.getElementById('user-name').innerText = data.username;
+                        document.getElementById('user-role').innerText = data.role;
+                    } else {
+                        msg.style.color = 'orange';
+                        msg.innerText = "登录成功，但您不是管理员 (角色：" + data.role + ")";
+                    }
+                } else {
+                    msg.style.color = 'red';
+                    msg.innerText = "登录失败：" + (result.error || result.message);
+                }
+            } catch (e) {
+                console.error(e);
+                msg.style.color = 'red';
+                msg.innerText = "网络错误，请检查控制台";
+            }
+        }
+
+        function logout() {
+            location.reload(); // 简单刷新页面清除状态
+        }
+    </script>
+</body>
+</html>
