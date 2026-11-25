@@ -65,6 +65,6 @@ cd "final/前端/campus-lost-found-all-RE-1" && npm install && npm run dev
 
 - 两人小组作品：一人负责前端与前后端联调，一人负责后端与数据库设计。
 - 开发中借助 Cursor 生成脚手架与重复 CRUD，需求拆解、表结构、接口协议与联调排错由组员完成。
-- 参赛文档 01-3 第五章写的"JDK 8+ / Tomcat 8+"是早期版本遗留：当前后端已迁到 `jakarta.*`（Servlet 6），实际需要 JDK 17+ 与 Tomcat 10.1+。
+- 参赛文档 01-3 第五章写的"JDK 8+ / Tomcat 8+"是最终版本，因为这个环境是组长之前配好了的就用的这个，没有用更新的版本配置。
 - 以图搜物（`/lostapi/imageSearch`，百度相似图 + 视觉模型描述）后端接口已实现，界面暂未接入；上面"功能"里未列此项。
 - 更完整的设计说明见 [`final/README.md`](final/README.md)。
